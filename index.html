@@ -1,0 +1,456 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>防禦性悲觀問卷 DPQ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  /* 版面：單欄問卷，題目逐題成列，七點量表橫排；底部黏著計分列隨時顯示進度與總分 */
+  :root {
+    --bg: #eef1f5;
+    --surface: #ffffff;
+    --fg: #1b2330;
+    --muted: #5b6676;
+    --line: #d5dbe4;
+    --accent: #1f4e79;
+    --accent-fg: #ffffff;
+    --accent-soft: #dce8f3;
+    --focus: #b4541a;
+    --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12171f;
+      --surface: #1b222d;
+      --fg: #e6ebf2;
+      --muted: #9aa6b6;
+      --line: #2f3947;
+      --accent: #7fb2e0;
+      --accent-fg: #0f1722;
+      --accent-soft: #23374d;
+      --focus: #f0a46a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12171f;
+    --surface: #1b222d;
+    --fg: #e6ebf2;
+    --muted: #9aa6b6;
+    --line: #2f3947;
+    --accent: #7fb2e0;
+    --accent-fg: #0f1722;
+    --accent-soft: #23374d;
+    --focus: #f0a46a;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  header { padding-block: 40px 20px; }
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.25;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .sub { color: var(--muted); margin: 0; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .panel + .panel { margin-top: 16px; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    margin: 0 0 10px;
+  }
+  .panel p { margin: 0 0 8px; }
+  .panel p:last-child { margin-bottom: 0; }
+  .scale-legend {
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+    margin-top: 12px;
+    font-family: var(--font-data);
+    font-size: 14px;
+  }
+  .scale-legend b { color: var(--accent); }
+
+  form { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .q {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+    margin: 0;
+    min-width: 0;
+    transition: border-color .15s;
+  }
+  .q.done { border-color: var(--accent); }
+  .q legend {
+    padding: 0;
+    float: left;
+    width: 100%;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .q legend .n {
+    display: inline-block;
+    min-width: 2.2em;
+    font-family: var(--font-data);
+    color: var(--accent);
+  }
+  .scale {
+    clear: both;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .scale input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scale label {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: var(--font-data);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--bg);
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .scale label:hover { border-color: var(--accent); }
+  .scale input:checked + label {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+    font-weight: 700;
+  }
+  .scale input:focus-visible + label {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .ends {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  #result { margin-top: 16px; }
+  #result[hidden] { display: none; }
+  .result-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 8px; }
+  .result-score { font-family: var(--font-data); font-size: 32px; color: var(--accent); line-height: 1.2; }
+  .chip {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 2px 12px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .bands { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 15px; }
+  .bands th, .bands td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .bands th { font-weight: 500; color: var(--muted); font-size: 13px; }
+  .bands td:first-child { font-family: var(--font-data); white-space: nowrap; }
+  .table-scroll { overflow-x: auto; }
+  .note {
+    margin-top: 12px !important;
+    padding: 12px 14px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--fg);
+  }
+
+  .bar {
+    position: sticky;
+    bottom: 0;
+    margin-top: 16px;
+    margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    z-index: 5;
+  }
+  .bar-inner { max-width: 760px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .stats { flex: 1 1 220px; min-width: 0; }
+  .stats-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .stats-row b { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  .track { height: 6px; background: var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-fg);
+    cursor: pointer;
+  }
+  button.ghost { background: transparent; color: var(--accent); }
+  button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  #fallback { width: 100%; margin-top: 10px; min-height: 120px; font-family: var(--font-body); font-size: 13px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  #toast { font-size: 13px; color: var(--accent); min-height: 1.4em; width: 100%; }
+
+  footer { padding-block: 20px 28px; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 420px) {
+    .panel { padding: 16px; }
+    .scale { gap: 4px; }
+    .scale label { min-height: 44px; font-size: 15px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Defensive Pessimism Questionnaire</p>
+    <h1>防禦性悲觀問卷（DPQ）</h1>
+    <p class="sub">共 12 題，七點量表，約 3 分鐘完成。</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-intro">
+    <h2 id="h-intro">填答說明</h2>
+    <p>本問卷旨在了解您面對未來事件或重要任務時的想法與因應方式。請依據自身實際情況，選擇最符合您的程度。本問卷沒有標準答案，請依照您的真實感受作答。</p>
+    <div class="scale-legend" aria-label="量表說明">
+      <span><b>1</b> ＝ 完全不正確</span>
+      <span><b>7</b> ＝ 十分符合我的狀況</span>
+    </div>
+  </section>
+
+  <form id="dpq" autocomplete="off" onsubmit="return false"></form>
+
+  <section class="panel" id="result" hidden aria-live="polite">
+    <h2>填答結果</h2>
+    <div class="result-head">
+      <span class="result-score" id="rScore"></span>
+      <span class="chip" id="rChip"></span>
+    </div>
+    <p id="rText"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-score" style="margin-top:16px">
+    <h2 id="h-score">計分方式</h2>
+    <p>依據投影片內容，各題採 1 至 7 分計分，12 題總分介於 12 至 84 分。</p>
+    <div class="table-scroll">
+      <table class="bands">
+        <thead><tr><th>總分</th><th>投影片的說法</th></tr></thead>
+        <tbody>
+          <tr><td>高於 50 分</td><td>符合投影片所述防禦性悲觀的判定條件</td></tr>
+          <tr><td>30 至 50 分</td><td>投影片未提供明確分類標準</td></tr>
+          <tr><td>低於 30 分</td><td>投影片稱為「策略性的樂天派」</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">以上依投影片文字整理，保留原始題意。若要作為正式學術研究工具，仍須核對原始 DPQ 量表的題項版本、反向計分規則及信效度，不能直接將上述分數當成經過驗證的心理診斷結果。</p>
+  </section>
+
+  <div class="bar">
+    <div class="bar-inner">
+      <div class="stats">
+        <div class="stats-row"><span>已完成 <b id="done">0</b> / 12 題</span><span>目前總分 <b id="total">0</b> / 84 分</span></div>
+        <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" id="prog"><div class="fill" id="fill"></div></div>
+      </div>
+      <div class="actions">
+        <button type="button" id="copy" disabled>複製問卷結果</button>
+        <button type="button" id="reset" class="ghost">重新填答</button>
+      </div>
+      <div id="toast" role="status"></div>
+    </div>
+    <div class="bar-inner"><textarea id="fallback" readonly hidden aria-label="問卷結果文字，可手動複製"></textarea></div>
+  </div>
+
+  <footer>完成全部 12 題後即可查看分數說明。</footer>
+</div>
+
+<script>
+(function () {
+  var QUESTIONS = [
+    "即使最後可能順利過關，通常我還是先做最壞的打算。",
+    "我會擔心未來可能的發展。",
+    "我小心考量所有可能的後果。",
+    "我經常擔心我無法做到我想做的事。",
+    "我花很多時間想像那些地方可能會出錯。",
+    "我會想像假如情況變得很糟的話，我會有什麼樣的感覺。",
+    "我試圖思考如果出問題的話，我該如何補救。",
+    "我很小心不要讓自己變得過度自信。",
+    "我花很多時間預先規劃。",
+    "我會想像如果一切順利的話，我會有什麼樣的感覺。",
+    "在這類情況下，有時候，我很少去想像一切都很順利的情況，反而常常擔心自己變成別人眼中的笨蛋。",
+    "思考哪些地方可能出錯，能幫助我未雨綢繆，防患於未然。"
+  ];
+  var KEY = "dpq-answers-v1";
+  var answers = new Array(QUESTIONS.length).fill(0);
+  var form = document.getElementById("dpq");
+
+  QUESTIONS.forEach(function (text, i) {
+    var fs = document.createElement("fieldset");
+    fs.className = "q";
+    fs.id = "q" + (i + 1);
+    var lg = document.createElement("legend");
+    lg.innerHTML = '<span class="n">' + (i + 1) + '.</span>';
+    lg.appendChild(document.createTextNode(text));
+    fs.appendChild(lg);
+    var scale = document.createElement("div");
+    scale.className = "scale";
+    for (var v = 1; v <= 7; v++) {
+      var id = "q" + (i + 1) + "_" + v;
+      var inp = document.createElement("input");
+      inp.type = "radio"; inp.name = "q" + (i + 1); inp.id = id; inp.value = v;
+      inp.dataset.i = i;
+      var lab = document.createElement("label");
+      lab.htmlFor = id; lab.textContent = v;
+      scale.appendChild(inp); scale.appendChild(lab);
+    }
+    fs.appendChild(scale);
+    var ends = document.createElement("div");
+    ends.className = "ends";
+    ends.innerHTML = "<span>完全不正確</span><span>十分符合我的狀況</span>";
+    fs.appendChild(ends);
+    form.appendChild(fs);
+  });
+
+  form.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t && t.type === "radio") {
+      answers[+t.dataset.i] = +t.value;
+      render(); save();
+    }
+  });
+
+  function classify(total) {
+    if (total > 50) return { chip: "符合防禦性悲觀", text: "總分高於 50 分，符合投影片所述防禦性悲觀的判定條件。" };
+    if (total < 30) return { chip: "策略性的樂天派", text: "總分低於 30 分，投影片稱此為「策略性的樂天派」。" };
+    return { chip: "未分類（30 至 50 分）", text: "總分介於 30 至 50 分，投影片未提供明確分類標準。" };
+  }
+
+  function stats() {
+    var done = answers.filter(Boolean).length;
+    var total = answers.reduce(function (a, b) { return a + b; }, 0);
+    return { done: done, total: total };
+  }
+
+  function render() {
+    var s = stats();
+    document.getElementById("done").textContent = s.done;
+    document.getElementById("total").textContent = s.total;
+    document.getElementById("fill").style.width = (s.done / 12 * 100) + "%";
+    document.getElementById("prog").setAttribute("aria-valuenow", s.done);
+    answers.forEach(function (a, i) {
+      document.getElementById("q" + (i + 1)).classList.toggle("done", !!a);
+    });
+    var res = document.getElementById("result");
+    var complete = s.done === 12;
+    document.getElementById("copy").disabled = !complete;
+    res.hidden = !complete;
+    if (complete) {
+      var c = classify(s.total);
+      document.getElementById("rScore").textContent = s.total + " / 84 分";
+      document.getElementById("rChip").textContent = c.chip;
+      document.getElementById("rText").textContent = c.text + "此結果僅依投影片標準整理，不是經過驗證的心理診斷。";
+    }
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(answers)); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length === 12) {
+        arr.forEach(function (v, i) {
+          v = +v;
+          if (v >= 1 && v <= 7) {
+            answers[i] = v;
+            var el = document.getElementById("q" + (i + 1) + "_" + v);
+            if (el) el.checked = true;
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
+  function buildText() {
+    var s = stats();
+    var c = classify(s.total);
+    var lines = ["防禦性悲觀問卷（DPQ）結果", "（1＝完全不正確，7＝十分符合我的狀況）", ""];
+    QUESTIONS.forEach(function (q, i) { lines.push((i + 1) + ". " + q + " → " + answers[i]); });
+    lines.push("", "總分：" + s.total + " / 84 分", "分類（依投影片）：" + c.chip,
+      "註：依投影片標準整理，不是經過驗證的心理診斷。");
+    return lines.join("\n");
+  }
+
+  var toast = document.getElementById("toast");
+  var fb = document.getElementById("fallback");
+  function say(msg) {
+    toast.textContent = msg;
+    setTimeout(function () { if (toast.textContent === msg) toast.textContent = ""; }, 3000);
+  }
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var text = buildText();
+    function fallback() {
+      fb.value = text; fb.hidden = false; fb.focus(); fb.select();
+      say("無法自動複製，請手動複製下方文字。");
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () {
+        fb.hidden = true; say("已複製問卷結果。");
+      }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  document.getElementById("reset").addEventListener("click", function () {
+    answers.fill(0);
+    form.querySelectorAll("input:checked").forEach(function (el) { el.checked = false; });
+    fb.hidden = true;
+    render(); save();
+    say("已清除所有答案。");
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+
+  load(); render();
+})();
+</script>
+
+</body></html>
